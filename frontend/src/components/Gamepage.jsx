@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
+import bgImage from "../assets/bgg.jpg"; // Background image
 
 const GamePage = () => {
   const location = useLocation();
@@ -8,7 +9,6 @@ const GamePage = () => {
 
   const { userName = "Player", level = "Easy", email = "" } = location.state || {};
 
-  // Set total time based on level
   const getTime = () => {
     switch (level.toLowerCase()) {
       case "easy":
@@ -23,19 +23,32 @@ const GamePage = () => {
   };
 
   const totalTime = getTime();
-
-  // Game states
   const [timeLeft, setTimeLeft] = useState(totalTime);
   const [guess, setGuess] = useState("");
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [isCorrect, setIsCorrect] = useState(null);
-
-  // Puzzle
   const [bananaQuestion, setBananaQuestion] = useState(null);
   const [correctAnswer, setCorrectAnswer] = useState(null);
 
-  // Fetch puzzle from API
+  const [pokemon, setPokemon] = useState(null);
+
+  const [showReward, setShowReward] = useState(false);
+  const [rewardEmojis, setRewardEmojis] = useState([]);
+  const [showHeartBreak, setShowHeartBreak] = useState(false);
+  const [shakeCard, setShakeCard] = useState(false);
+
+  // Disable scrolling globally
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, []);
+
+  // Fetch Banana puzzle
   const fetchPuzzle = async () => {
     try {
       const res = await fetch("https://marcconrad.com/uob/banana/api.php");
@@ -49,299 +62,433 @@ const GamePage = () => {
     }
   };
 
-  // Fetch the first puzzle
+  // Fetch random Pokémon
+  const fetchPokemon = async () => {
+    try {
+      const randomId = Math.floor(Math.random() * 151) + 1;
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
+      const data = await res.json();
+      setPokemon({
+        name: data.name,
+        image: data.sprites.front_default,
+      });
+    } catch (error) {
+      console.error("Error fetching Pokémon", error);
+    }
+  };
+
   useEffect(() => {
     fetchPuzzle();
+    fetchPokemon();
   }, []);
 
-  // Timer logic
+  // Timer
   useEffect(() => {
     if (timeLeft <= 0) {
-      // When time ends, go to results
-      updateScoreInDB(email, score);
-      navigate("/result", {
-        state: {
-          userName,
-          level,
-          score,
-          gameResult: "timeup",
-          timeUsed: totalTime,
-        },
-      });
+      handleTimeUp();
       return;
     }
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-
+    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // Format timer
   const formatTime = (seconds) => `00:${seconds.toString().padStart(2, "0")}`;
 
+  // Update score in DB with JWT
   const updateScoreInDB = async (email, score) => {
     try {
+      const token = localStorage.getItem("token"); // <-- JWT token
+
       const res = await fetch("http://localhost:5000/api/auth/score", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // <-- Send token
+        },
         body: JSON.stringify({ email, score }),
       });
-  
+
       const data = await res.json();
-      console.log("Update response:", data);
-  
       if (!res.ok) {
         console.error("Score update failed:", data);
+        alert("Failed to update score. Make sure you are logged in.");
       }
     } catch (err) {
       console.error("Error updating score:", err);
+      alert("Error updating score. Check console for details.");
     }
   };
-  
 
-  // ✅ Handle Answer Confirmation
+  const triggerRewardAnimation = () => {
+    const emojis = ["🎉", "⭐", "🪙", "✨", "💎"];
+    const particles = Array.from({ length: 12 }).map(() => ({
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      left: Math.random() * 80 + 10,
+      rotation: Math.random() * 360,
+    }));
+    setRewardEmojis(particles);
+    setShowReward(true);
+    setTimeout(() => setShowReward(false), 1500);
+  };
+
+  const triggerHeartBreakAnimation = () => {
+    setShowHeartBreak(true);
+    setTimeout(() => setShowHeartBreak(false), 1500);
+  };
+
   const handleConfirmGuess = () => {
-    if (guess === "") {
+    if (!guess) {
       alert("Please enter your answer!");
       return;
     }
-
     const isAnswerCorrect = parseInt(guess) === correctAnswer;
-
     if (isAnswerCorrect) {
-      const newScore = score + 1;
-      setScore(newScore);
+      setScore(score + 1);
       setFeedback("✅ Correct!");
       setIsCorrect(true);
       setGuess("");
-      fetchPuzzle(); // 🔁 Load new question
+      fetchPuzzle();
+      fetchPokemon();
+      triggerRewardAnimation();
     } else {
       setFeedback("❌ Wrong! Try again!");
       setIsCorrect(false);
-      setGuess(""); // clear input, keep same question
+      setGuess("");
+      setShakeCard(true);
+      triggerHeartBreakAnimation();
+      setTimeout(() => setShakeCard(false), 800);
     }
   };
 
-  const handleQuit = () => {
-    updateScoreInDB(email, score);
-
+  const handleQuit = async () => {
+    await updateScoreInDB(email, score);
     navigate("/welcome");
   };
 
+  const handleTimeUp = async () => {
+    await updateScoreInDB(email, score);
+    navigate("/result", {
+      state: { userName, level, score, gameResult: "timeup", timeUsed: totalTime },
+    });
+  };
+
   return (
-    <div
-      className="game-wrapper"
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #dbeafe, #fef9c3, #fde68a)",
-        fontFamily: "Poppins, sans-serif",
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="game-card"
+    <div style={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
+      {/* Full-Screen Background */}
+      <div
         style={{
-          background: "#fff",
-          borderRadius: "25px",
-          padding: "40px",
-          width: "650px",
-          textAlign: "center",
-          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          zIndex: -1,
+        }}
+      />
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0,0,0,0.3)",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Centered Game Card */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          padding: "20px",
+          boxSizing: "border-box",
         }}
       >
-        <h1 style={{ marginBottom: "30px", fontWeight: "700" }}>🎮 Game On!</h1>
-
-        {/* Player Info */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7 }}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "35px",
-            gap: "10px",
+            width: "950px",
+            maxWidth: "100%",
+            padding: "35px",
+            borderRadius: "30px",
+            background: "linear-gradient(to bottom right, #fef3c7, #fde68a)",
+            boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
+            border: "4px solid #fcd34d",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          <div
+          <h1
             style={{
-              flex: 1,
-              background: "#e0f2fe",
-              padding: "12px",
-              borderRadius: "12px",
-              fontWeight: "600",
-            }}
-          >
-            👤 {userName}
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              background: "#fef9c3",
-              padding: "12px",
-              borderRadius: "12px",
-              fontWeight: "600",
-            }}
-          >
-            ⚙️ {level}
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              background: "#dcfce7",
-              padding: "12px",
-              borderRadius: "12px",
-              fontWeight: "600",
-              color: timeLeft <= 10 ? "#ef4444" : "#166534",
-              animation: timeLeft <= 10 ? "blink 1s infinite alternate" : "none",
-            }}
-          >
-            ⏱ {formatTime(timeLeft)}
-          </div>
-
-          <button
-            onClick={handleQuit}
-            style={{
-              padding: "10px 15px",
-              background: "#ef4444",
-              borderRadius: "12px",
-              border: "none",
-              color: "#fff",
-            }}
-          >
-            Quit
-          </button>
-        </div>
-
-        {/* Score */}
-        <div
-          style={{
-            background: "#f0f9ff",
-            padding: "10px",
-            borderRadius: "10px",
-            marginBottom: "20px",
-            fontWeight: "700",
-            color: "#0c4a6e",
-            fontSize: "18px",
-          }}
-        >
-          🏆 Score: {score}
-        </div>
-
- 
-     {/* Puzzle */}
-<div
-  style={{
-    background: "#fff8dc",
-    borderRadius: "20px",
-    marginBottom: "35px",
-
-    /* center content */
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-
-    /* container sizing */
-    width: "100%",
-    maxWidth: "560px",   
-    height: "360px",     
-    padding: "12px",     
-    boxSizing: "border-box",
-    overflow: "hidden",  
-    marginLeft: "auto",
-    marginRight: "auto",
-  }}
->
-  {bananaQuestion ? (
-    <img
-      src={bananaQuestion}
-      alt="Banana Puzzle"
-      style={{
-        /* ensure the image always fits inside the container */
-        maxWidth: "100%",
-        maxHeight: "100%",
-
-        /* keep image aspect ratio and center it */
-        width: "auto",
-        height: "auto",
-        objectFit: "contain",
-
-        /* styling */
-        borderRadius: "14px",
-        boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
-        display: "block",
-      }}
-    />
-  ) : (
-    <p style={{ fontWeight: "600", fontSize: "18px" }}>Loading puzzle...</p>
-  )}
-</div>
-
-
-        {/* Answer Input */}
-        <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-          <input
-            type="number"
-            min="0"
-            max="9"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            style={{
-              width: "70px",
-              padding: "10px",
+              fontWeight: "900",
+              fontSize: "36px",
+              marginBottom: "25px",
+              color: "#f59e0b",
               textAlign: "center",
-              borderRadius: "10px",
-              border: "1px solid #d1d5db",
-              fontWeight: "600",
-              fontSize: "18px",
-            }}
-          />
-
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleConfirmGuess}
-            style={{
-              padding: "10px 18px",
-              borderRadius: "10px",
-              background: "#10b981",
-              border: "none",
-              fontWeight: "600",
-              color: "#fff",
+              textShadow: "3px 3px 6px #000",
             }}
           >
-            Confirm
-          </motion.button>
-        </div>
+            🎮 Game On, {userName}!
+          </h1>
 
-        {/* Feedback */}
-        {feedback && (
-          <p
+          {/* Player Info + Timer + Quit */}
+          <div
             style={{
-              marginTop: "25px",
-              fontWeight: "700",
-              fontSize: "18px",
-              color: isCorrect ? "#16a34a" : "#dc2626",
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "25px",
+              gap: "10px",
             }}
           >
-            {feedback}
-          </p>
-        )}
+            <div
+              style={{
+                flex: 1,
+                background: "#86efac",
+                padding: "10px",
+                borderRadius: "12px",
+                fontWeight: "700",
+                boxShadow: "0 5px 12px rgba(0,0,0,0.3)",
+                textAlign: "center",
+                fontSize: "20px",
+              }}
+            >
+              👤 {userName}
+            </div>
+            <div
+              style={{
+                flex: 1,
+                background: "#fde047",
+                padding: "10px",
+                borderRadius: "12px",
+                fontWeight: "700",
+                boxShadow: "0 5px 12px rgba(0,0,0,0.3)",
+                textAlign: "center",
+                fontSize: "20px",
+              }}
+            >
+              ⚙️ {level}
+            </div>
+            <div
+              style={{
+                flex: 1,
+                background: "#f87171",
+                padding: "10px",
+                borderRadius: "12px",
+                fontWeight: "700",
+                color: "#fff",
+                boxShadow: "0 5px 12px rgba(0,0,0,0.3)",
+                textAlign: "center",
+                fontSize: "20px",
+                animation: timeLeft <= 10 ? "blink 1s infinite alternate" : "none",
+              }}
+            >
+              ⏱ {formatTime(timeLeft)}
+            </div>
+            <button
+              onClick={handleQuit}
+              style={{
+                padding: "8px 12px",
+                background: "#ef4444",
+                borderRadius: "12px",
+                border: "none",
+                color: "#fff",
+                boxShadow: "0 5px 10px rgba(0,0,0,0.25)",
+                fontSize: "20px",
+              }}
+            >
+              Quit ❌
+            </button>
+          </div>
 
-        <style>
-          {`
-          @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-          }`}
-        </style>
-      </motion.div>
+          {/* Puzzle + Answer + Pokémon */}
+          <div
+            style={{
+              display: "flex",
+              gap: "20px",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              width: "100%",
+            }}
+          >
+            {/* Puzzle */}
+            <motion.div
+              style={{
+                flex: 2,
+                background: "#fffacd",
+                borderRadius: "20px",
+                padding: "15px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                boxShadow: "0 8px 25px rgba(0,0,0,0.25)",
+                position: "relative",
+              }}
+              animate={shakeCard ? { x: [-10, 10, -8, 8, -5, 5, 0] } : { x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              {bananaQuestion ? (
+                <img
+                  src={bananaQuestion}
+                  alt="Banana Puzzle"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    objectFit: "contain",
+                    borderRadius: "15px",
+                  }}
+                />
+              ) : (
+                <p style={{ fontWeight: "600", fontSize: "18px" }}>Loading puzzle...</p>
+              )}
+
+              {/* Reward & Heart */}
+              {showReward &&
+                rewardEmojis.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ y: -50, opacity: 1, rotate: item.rotation }}
+                    animate={{ y: 250, opacity: 0 }}
+                    transition={{ duration: 1.2 + Math.random() }}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: `${item.left}%`,
+                      fontSize: "40px",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {item.emoji}
+                  </motion.div>
+                ))}
+
+              {showHeartBreak &&
+                Array.from({ length: 10 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ y: -30, opacity: 1, rotate: Math.random() * 360 }}
+                    animate={{ y: 220 + Math.random() * 50, opacity: 0 }}
+                    transition={{ duration: 1 + Math.random() }}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: `${Math.random() * 80 + 10}%`,
+                      fontSize: "40px",
+                      color: "red",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    💔
+                  </motion.div>
+                ))}
+            </motion.div>
+
+            {/* Score + Pokémon + Answer */}
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "15px",
+              }}
+            >
+              <div
+                style={{
+                  background: "#dbeafe",
+                  padding: "10px",
+                  borderRadius: "12px",
+                  fontWeight: "700",
+                  color: "#1e40af",
+                  fontSize: "20px",
+                  width: "100%",
+                  textAlign: "center",
+                  boxShadow: "0 5px 12px rgba(0,0,0,0.2)",
+                }}
+              >
+                🏆 Score: {score}
+              </div>
+
+              {pokemon && (
+                <div style={{ textAlign: "center" }}>
+                  <h3 style={{ marginBottom: "10px" }}>Random Pokémon: {pokemon.name}</h3>
+                  <img src={pokemon.image} alt={pokemon.name} style={{ width: "120px", height: "auto" }} />
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                <input
+                  type="number"
+                  min="0"
+                  max="9"
+                  value={guess}
+                  onChange={(e) => setGuess(e.target.value)}
+                  style={{
+                    width: "60px",
+                    padding: "10px",
+                    textAlign: "center",
+                    borderRadius: "12px",
+                    border: "2px solid #fcd34d",
+                    fontWeight: "700",
+                    fontSize: "20px",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                  }}
+                />
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleConfirmGuess}
+                  style={{
+                    padding: "10px 15px",
+                    borderRadius: "12px",
+                    background: "#10b981",
+                    border: "none",
+                    fontSize: "20px",
+                    fontWeight: "700",
+                    color: "#fff",
+                    boxShadow: "0 5px 12px rgba(0,0,0,0.25)",
+                    cursor: "pointer",
+                  }}
+                >
+                  Confirm ✅
+                </motion.button>
+              </div>
+
+              {feedback && (
+                <p
+                  style={{
+                    fontWeight: "700",
+                    fontSize: "16px",
+                    color: isCorrect ? "#16a34a" : "#dc2626",
+                    textAlign: "center",
+                    marginTop: "5px",
+                  }}
+                >
+                  {feedback}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <style>
+            {`
+              @keyframes blink {
+                0% { opacity: 1; }
+                50% { opacity: 0.3; }
+                100% { opacity: 1; }
+              }
+            `}
+          </style>
+        </motion.div>
+      </div>
     </div>
   );
 };

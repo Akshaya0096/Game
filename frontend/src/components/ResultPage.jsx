@@ -1,138 +1,185 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import bgSky from "../assets/sky.webp";
+import woodBg from "../assets/wood.jpg";
 
 const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ Added `score`
-  const { userName, level, gameResult, timeUsed, score } = location.state || {};
+  const { userName, level, score, timeUsed } = location.state || {};
+  const [allResults, setAllResults] = useState([]);
 
-  // ✅ Save player result to localStorage (avoid duplicates)
   useEffect(() => {
     if (userName && level && timeUsed !== undefined) {
-      const existingScores = JSON.parse(localStorage.getItem("scoreboard")) || [];
-
-      const newScore = {
+      const existing = JSON.parse(localStorage.getItem("scoreboard")) || [];
+      const newResult = {
         username: userName,
         level,
-        timeTaken: timeUsed,
-        score, // ✅ Save the player's score
-        result: gameResult,
+        score,
+        timeUsed,
         date: new Date().toLocaleString(),
       };
-
-      // Check for duplicates
-      const isDuplicate = existingScores.some(
-        (s) =>
-          s.username === newScore.username &&
-          s.level === newScore.level &&
-          s.timeTaken === newScore.timeTaken &&
-          s.score === newScore.score &&
-          s.date === newScore.date
-      );
-
-      if (!isDuplicate) {
-        const updatedScores = [...existingScores, newScore];
-        localStorage.setItem("scoreboard", JSON.stringify(updatedScores));
-      }
+      localStorage.setItem("scoreboard", JSON.stringify([...existing, newResult]));
+      setAllResults([...existing, newResult]);
     }
-  }, [userName, level, timeUsed, gameResult, score]);
+  }, [userName, level, score, timeUsed]);
 
   const handlePlayAgain = () => navigate("/welcome", { state: { userName } });
   const handleScoreboard = () => navigate("/scoreboard", { state: { userName } });
-  const handleQuit = () => navigate("/"); // back to login
+  const handleQuit = () => navigate("/");
 
-  const buttonStyle = (bg) => ({
-    padding: "12px 25px",
-    fontSize: "1rem",
-    fontWeight: "600",
-    borderRadius: "12px",
-    background: bg,
-    color: "#fff",
-    border: "none",
-    cursor: "pointer",
-    transition: "0.3s",
-  });
+  // Button variants for Framer Motion
+  const buttonVariants = {
+    hover: {
+      scale: 1.1,
+      boxShadow: "0 0 15px rgba(255,255,255,0.6)",
+      transition: { duration: 0.3, yoyo: Infinity },
+    },
+    tap: {
+      scale: 0.95,
+      transition: { duration: 0.1 },
+    },
+  };
 
   return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        position: "relative",
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #fde68a, #fef9c3, #dbeafe)",
-        fontFamily: "Poppins, sans-serif",
+        width: "100%",
+        fontFamily: "'Comic Neue', cursive",
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+      {/* Background */}
+      <div
         style={{
-          background: "#fff",
-          borderRadius: "25px",
-          padding: "50px",
-          width: "600px",
-          textAlign: "center",
-          boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundImage: `url(${bgSky})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          zIndex: -1,
+        }}
+      />
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0,0,0,0.2)",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Content */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "20px",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
-        <h1
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
           style={{
-            fontSize: "2rem",
-            marginBottom: "20px",
-            fontWeight: "700",
-            color: gameResult === "success" ? "#10b981" : "#ef4444",
+            fontSize: "3rem",
+            marginBottom: "30px",
+            color: "#ff6f61",
+            textShadow: "2px 2px #fff",
           }}
         >
-          {gameResult === "success" ? "🎉 You Won!" : "❌ You Lost!"}
-        </h1>
+          🎮 Game Over
+        </motion.h1>
 
-        <p style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "10px" }}>
-          👤 Player: {userName}
-        </p>
-        <p style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "10px" }}>
-          ⚙️ Level: {level}
-        </p>
-        <p style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "10px" }}>
-          🏆 Score: {score}
-        </p>
-        <p style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "30px" }}>
-          ⏱ Time Taken: {timeUsed} seconds
-        </p>
-
-        <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
-          <button
-            onClick={handlePlayAgain}
-            style={buttonStyle("#10b981")}
-            onMouseOver={(e) => (e.target.style.background = "#059669")}
-            onMouseOut={(e) => (e.target.style.background = "#10b981")}
+        {/* Player Info Box */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          style={{
+            width: "100%",
+            maxWidth: "600px",
+            borderRadius: "25px",
+            padding: "30px",
+            backgroundImage: `url(${woodBg})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            border: "6px solid #8b5e3c",
+            boxShadow: "0 12px 30px rgba(0,0,0,0.5)",
+            marginBottom: "30px",
+          }}
+        >
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "1.2rem",
+              color: "#fff",
+              textShadow: "1px 1px 2px #000",
+            }}
           >
-            Play Again
-          </button>
+            <tbody>
+              {[
+                { label: "Player", value: userName },
+                { label: "Level", value: level },
+                { label: "Score", value: score },
+                { label: "Time Taken", value: `${timeUsed} seconds` },
+              ].map((item, idx) => (
+                <tr key={idx} style={{ borderBottom: "1px solid rgba(255,255,255,0.4)" }}>
+                  <td style={{ padding: "12px", fontWeight: "700", textAlign: "right" }}>
+                    {item.label}:
+                  </td>
+                  <td style={{ padding: "12px", textAlign: "left" }}>{item.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </motion.div>
 
-          <button
-            onClick={handleScoreboard}
-            style={buttonStyle("#3b82f6")}
-            onMouseOver={(e) => (e.target.style.background = "#2563eb")}
-            onMouseOut={(e) => (e.target.style.background = "#3b82f6")}
-          >
-            Scoreboard
-          </button>
-
-          <button
-            onClick={handleQuit}
-            style={buttonStyle("#ef4444")}
-            onMouseOver={(e) => (e.target.style.background = "#dc2626")}
-            onMouseOut={(e) => (e.target.style.background = "#ef4444")}
-          >
-            Quit
-          </button>
+        {/* Animated Buttons */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
+          {[
+            { label: "Play Again", onClick: handlePlayAgain, bg: "#10b981" },
+            { label: "Scoreboard", onClick: handleScoreboard, bg: "#3b82f6" },
+            { label: "Quit", onClick: handleQuit, bg: "#ef4444" },
+          ].map((btn, idx) => (
+            <motion.button
+              key={idx}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              onClick={btn.onClick}
+              style={{
+                padding: "12px 25px",
+                fontSize: "1rem",
+                fontWeight: "600",
+                borderRadius: "12px",
+                background: btn.bg,
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              {btn.label}
+            </motion.button>
+          ))}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
