@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get("/random-pokemon", async (req, res) => {
   try {
-    const randomId = Math.floor(Math.random() * 151) + 1; // 1–151 classic Pokémon
+    const randomId = Math.floor(Math.random() * 151) + 1; 
 
     const response = await axios.get(
       `https://pokeapi.co/api/v2/pokemon/${randomId}`

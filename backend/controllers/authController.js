@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/usermodel.js";
 
-// 📝 Signup
+
 export const signup = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -20,7 +20,7 @@ export const signup = async (req, res) => {
   });
 };
 
-// 🔐 Login with JWT
+
 export const login = (req, res) => {
   const { email, password } = req.body;
 
@@ -34,7 +34,7 @@ export const login = (req, res) => {
     if (!isMatch)
       return res.status(400).json({ error: "Invalid email or password" });
 
-    // ✅ Generate JWT token
+   
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
@@ -43,13 +43,13 @@ export const login = (req, res) => {
 
     res.json({
       message: "Login successful",
-      token, // <-- JWT token
+      token, 
       user: { id: user.id, name: user.name, email: user.email, score: user.score },
     });
   });
 };
 
-// 🏆 Update Score (JWT-protected route)
+
 export const updateScore = (req, res) => {
   const { email, score } = req.body;
   if (!email || score === undefined)
@@ -61,7 +61,7 @@ export const updateScore = (req, res) => {
   });
 };
 
-// 👥 Get All Users (Leaderboard)
+
 export const getUsers = (req, res) => {
   User.getAll((err, results) => {
     if (err) return res.status(500).json({ error: "Database error" });
@@ -69,7 +69,7 @@ export const getUsers = (req, res) => {
   });
 };
 
-// 🏅 Get user score by email
+
 export const getScore = (req, res) => {
   const email = req.params.email;
   if (!email) return res.status(400).json({ error: "Email required" });
