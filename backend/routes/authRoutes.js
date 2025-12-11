@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/login", login);
 
-// JWT-protected route
+
 router.put("/score", verifyToken, updateScore);
 
 router.get("/users", getUsers);
