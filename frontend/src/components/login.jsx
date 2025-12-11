@@ -46,7 +46,7 @@ const Login = () => {
     }
   };
 
-  // 🍂 Falling leaves animation
+
   const leaves = [...Array(12)].map((_, i) => ({
     id: i,
     size: 15 + Math.random() * 20,
@@ -78,7 +78,7 @@ const Login = () => {
         overflow: "hidden",
       }}
     >
-      {/* 🌫️ Floating circles + leaves */}
+      
       <div style={{ position: "absolute", width: "100%", height: "100%", top: 0, left: 0 }}>
         {[...Array(8)].map((_, i) => (
           <motion.div
@@ -118,7 +118,7 @@ const Login = () => {
         ))}
       </div>
 
-      {/* 💻 Login Box */}
+      
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
@@ -134,7 +134,7 @@ const Login = () => {
           background: "rgba(10,10,30,0.85)",
         }}
       >
-        {/* Left Side Form */}
+        
         <div style={{ flex: 1, padding: "40px", color: "#fff" }}>
           <h1 style={{ fontWeight: "800", marginBottom: "15px", color: "#38bdf8" }}>Mathilo Game </h1>
           <p style={{ marginBottom: "30px", fontWeight: "600", color: "#fcd34d" }}>Welcome back, player!</p>
@@ -173,13 +173,13 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Right Side Illustration */}
+        
         <div style={{ flex: 1, background: "rgba(0,0,0,0.05)", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <motion.img src={loginImg} alt="login illustration" initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.8 }} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       </motion.div>
 
-      {/* ✅ Animated Success Popup */}
+     
       {showSuccess && (
         <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.5 }}
           style={{ position: "fixed", top: "40%", left: "50%", transform: "translate(-50%, -50%)", background: "linear-gradient(90deg,#22c55e,#14b8a6)", padding: "30px 50px", borderRadius: "20px", color: "#fff", fontSize: "20px", fontWeight: "700", zIndex: 9999, textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}>

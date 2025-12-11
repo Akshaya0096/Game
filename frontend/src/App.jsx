@@ -7,16 +7,16 @@ import GamePage from "./components/Gamepage";
 import ResultPage from "./components/ResultPage";
 import ScoreboardPage from "./components/ScoreboardPage";
 
-import { createBGM, playSound } from "./audio";  // ✔ correct
+import { createBGM, playSound } from "./audio";  
 
 const App = () => {
   useEffect(() => {
-    const bgm = createBGM();   // create sound instance
+    const bgm = createBGM();  
     let started = false;
 
     const startBgm = () => {
       if (!started) {
-        playSound(bgm); // autoplay blocked fix
+        playSound(bgm); 
         started = true;
       }
     };

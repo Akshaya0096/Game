@@ -10,7 +10,7 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [isPasswordValid, setIsPasswordValid] = useState(true);
 
-  // 🍂 Generate leaves for animation
+  
   const leaves = Array.from({ length: 12 }).map((_, i) => ({
     id: i,
     size: 15 + Math.random() * 25,
@@ -20,7 +20,7 @@ const Signup = () => {
     rotate: Math.random() * 360,
   }));
 
-  // ✨ Handle Signup
+ 
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -43,11 +43,11 @@ const Signup = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // ✅ Show popup
+        
         setShowSuccess(true);
         setTimeout(() => {
           setShowSuccess(false);
-          navigate("/"); // Redirect to login page
+          navigate("/"); 
         }, 2000);
       } else {
         alert(data.error || "Signup failed. Please try again.");
@@ -80,7 +80,7 @@ const Signup = () => {
         overflow: "hidden",
       }}
     >
-      {/* 🍂 Falling yellow leaves */}
+      
       {leaves.map((leaf) => (
         <motion.div
           key={leaf.id}
@@ -106,7 +106,7 @@ const Signup = () => {
         />
       ))}
 
-      {/* Animated circles */}
+      
       <div
         style={{
           position: "absolute",
@@ -155,7 +155,7 @@ const Signup = () => {
           background: "rgba(10,10,30,0.85)",
         }}
       >
-        {/* Left Side - Form */}
+        
         <div style={{ flex: 1, padding: "40px", color: "#fff" }}>
           <h1
             style={{
@@ -284,7 +284,7 @@ const Signup = () => {
           </p>
         </div>
 
-        {/* Right Side - Illustration */}
+        
         <div
           style={{
             flex: 1,
@@ -305,7 +305,7 @@ const Signup = () => {
         </div>
       </motion.div>
 
-      {/* ✅ Animated Success Popup */}
+      
       {showSuccess && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
