@@ -64,10 +64,10 @@ const WelcomePage = () => {
         position: "fixed",
         top: 0,
         left: 0,
-        overflow: "hidden", // disables scrolling
+        overflow: "hidden", 
       }}
     >
-      {/* Floating stars / coins */}
+      
       <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -96,7 +96,7 @@ const WelcomePage = () => {
         💰
       </motion.div>
 
-      {/* Game Card */}
+      
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}

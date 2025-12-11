@@ -9,7 +9,7 @@ const ScoreboardPage = () => {
   const { userName } = location.state || {};
   const [scores, setScores] = useState([]);
 
-  // Fetch scores from backend
+ 
   useEffect(() => {
     const fetchScores = async () => {
       try {
@@ -34,7 +34,7 @@ const ScoreboardPage = () => {
     fetchScores();
   }, []);
 
-  // Rank emoji
+  
   const getRankEmoji = (rank) => {
     switch (rank) {
       case 1:
@@ -48,7 +48,7 @@ const ScoreboardPage = () => {
     }
   };
 
-  // Card background gradient
+  
   const getCardGradient = (rank, isCurrentUser) => {
     if (isCurrentUser) return "linear-gradient(135deg, #FFD700, #FFFACD)"; // Bright gold for current user
     switch (rank) {
@@ -63,7 +63,7 @@ const ScoreboardPage = () => {
     }
   };
 
-  // Blink animation for current user
+  
   const blinkAnimation = {
     animation: "blink 1s infinite",
   };
@@ -75,7 +75,7 @@ const ScoreboardPage = () => {
     }
   `;
 
-  // Inject keyframes
+  
   useEffect(() => {
     const styleSheet = document.styleSheets[0];
     styleSheet.insertRule(blinkKeyframes, styleSheet.cssRules.length);
@@ -90,7 +90,7 @@ const ScoreboardPage = () => {
         fontFamily: "'Comic Neue', cursive",
       }}
     >
-      {/* Fixed Background */}
+      
       <div
         style={{
           position: "fixed",
@@ -105,7 +105,7 @@ const ScoreboardPage = () => {
           zIndex: -1,
         }}
       />
-      {/* Overlay */}
+      
       <div
         style={{
           position: "fixed",
@@ -118,7 +118,7 @@ const ScoreboardPage = () => {
         }}
       />
 
-      {/* Main Content */}
+      
       <div
         style={{
           position: "relative",
@@ -130,7 +130,7 @@ const ScoreboardPage = () => {
           width: "100%",
         }}
       >
-        {/* Heading */}
+        
         <motion.h1
           initial={{ opacity: 0, y: -40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -145,7 +145,7 @@ const ScoreboardPage = () => {
           🏆 Fun Leaderboard 🎮
         </motion.h1>
 
-        {/* Score Cards */}
+        
         <div
           style={{
             width: "100%",
@@ -225,7 +225,7 @@ const ScoreboardPage = () => {
           )}
         </div>
 
-        {/* Main Menu Button */}
+        
         <motion.button
           onClick={() => navigate("/welcome", { state: { userName } })}
           whileHover={{ scale: 1.05 }}

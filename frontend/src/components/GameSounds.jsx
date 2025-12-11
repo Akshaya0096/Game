@@ -9,7 +9,7 @@ const GameSounds = () => {
   const [loseSound, setLoseSound] = useState(null);
 
   useEffect(() => {
-    // Initialize Howl sounds
+    
     setBgm(new Howl({ src: ['/audio/bgm.mp3'], loop: true, volume: 0.5 }));
     setClickSound(new Howl({ src: ['/audio/click.wav'], volume: 1.0 }));
     setGameStartSound(new Howl({ src: ['/audio/game_start.mp3'], volume: 1.0 }));
@@ -17,7 +17,7 @@ const GameSounds = () => {
     setLoseSound(new Howl({ src: ['/audio/lose.mp3'], volume: 1.0 }));
   }, []);
 
-  // Resume AudioContext after user gesture
+
   const resumeAudioContext = () => {
     if (Howler.ctx.state === 'suspended') {
       Howler.ctx.resume();

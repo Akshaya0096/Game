@@ -30,7 +30,7 @@ const ResultPage = () => {
   const handleScoreboard = () => navigate("/scoreboard", { state: { userName } });
   const handleQuit = () => navigate("/");
 
-  // Button variants for Framer Motion
+  
   const buttonVariants = {
     hover: {
       scale: 1.1,
@@ -52,7 +52,7 @@ const ResultPage = () => {
         fontFamily: "'Comic Neue', cursive",
       }}
     >
-      {/* Background */}
+      
       <div
         style={{
           position: "fixed",
@@ -78,7 +78,7 @@ const ResultPage = () => {
         }}
       />
 
-      {/* Content */}
+      
       <div
         style={{
           position: "relative",
@@ -91,7 +91,7 @@ const ResultPage = () => {
           boxSizing: "border-box",
         }}
       >
-        {/* Title */}
+        
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ const ResultPage = () => {
           🎮 Game Over
         </motion.h1>
 
-        {/* Player Info Box */}
+       
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -151,7 +151,7 @@ const ResultPage = () => {
           </table>
         </motion.div>
 
-        {/* Animated Buttons */}
+        
         <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
           {[
             { label: "Play Again", onClick: handlePlayAgain, bg: "#10b981" },

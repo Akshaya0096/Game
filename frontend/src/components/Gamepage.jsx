@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
-import bgImage from "../assets/bgg.jpg"; // Background image
+import bgImage from "../assets/bgg.jpg"; 
 
 const GamePage = () => {
   const location = useLocation();
@@ -38,7 +38,7 @@ const GamePage = () => {
   const [showHeartBreak, setShowHeartBreak] = useState(false);
   const [shakeCard, setShakeCard] = useState(false);
 
-  // Disable scrolling globally
+  
   useEffect(() => {
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
@@ -48,7 +48,7 @@ const GamePage = () => {
     };
   }, []);
 
-  // Fetch Banana puzzle
+  
   const fetchPuzzle = async () => {
     try {
       const res = await fetch("https://marcconrad.com/uob/banana/api.php");
@@ -62,7 +62,7 @@ const GamePage = () => {
     }
   };
 
-  // Fetch random Pokémon
+  
   const fetchPokemon = async () => {
     try {
       const randomId = Math.floor(Math.random() * 151) + 1;
@@ -82,7 +82,7 @@ const GamePage = () => {
     fetchPokemon();
   }, []);
 
-  // Timer
+  
   useEffect(() => {
     if (timeLeft <= 0) {
       handleTimeUp();
@@ -94,16 +94,16 @@ const GamePage = () => {
 
   const formatTime = (seconds) => `00:${seconds.toString().padStart(2, "0")}`;
 
-  // Update score in DB with JWT
+  
   const updateScoreInDB = async (email, score) => {
     try {
-      const token = localStorage.getItem("token"); // <-- JWT token
+      const token = localStorage.getItem("token"); 
 
       const res = await fetch("http://localhost:5000/api/auth/score", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // <-- Send token
+          Authorization: `Bearer ${token}`, 
         },
         body: JSON.stringify({ email, score }),
       });
@@ -174,7 +174,7 @@ const GamePage = () => {
 
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
-      {/* Full-Screen Background */}
+      
       <div
         style={{
           position: "fixed",
@@ -201,7 +201,7 @@ const GamePage = () => {
         }}
       />
 
-      {/* Centered Game Card */}
+      
       <div
         style={{
           display: "flex",
@@ -241,7 +241,7 @@ const GamePage = () => {
             🎮 Game On, {userName}!
           </h1>
 
-          {/* Player Info + Timer + Quit */}
+          
           <div
             style={{
               display: "flex",
@@ -310,7 +310,7 @@ const GamePage = () => {
             </button>
           </div>
 
-          {/* Puzzle + Answer + Pokémon */}
+          
           <div
             style={{
               display: "flex",
@@ -320,7 +320,7 @@ const GamePage = () => {
               width: "100%",
             }}
           >
-            {/* Puzzle */}
+            
             <motion.div
               style={{
                 flex: 2,
@@ -351,7 +351,7 @@ const GamePage = () => {
                 <p style={{ fontWeight: "600", fontSize: "18px" }}>Loading puzzle...</p>
               )}
 
-              {/* Reward & Heart */}
+              
               {showReward &&
                 rewardEmojis.map((item, index) => (
                   <motion.div
@@ -392,7 +392,7 @@ const GamePage = () => {
                 ))}
             </motion.div>
 
-            {/* Score + Pokémon + Answer */}
+            
             <div
               style={{
                 flex: 1,
